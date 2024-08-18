@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\FetchZohoAccounts;
+use App\Models\Account;
 use App\Services\Token\Service;
 use Illuminate\Support\Facades\Http;
 use App\Http\Requests\ZohoCrmAccount\StoreRequest;
@@ -20,15 +22,16 @@ class ZohoCrmAccountController extends Controller
     {
         $accessToken = $this->service->getAccessToken();
 
-        $response = Http::withHeaders([
+        $accounts = Http::withHeaders([
             'Authorization' => "Zoho-oauthtoken {$accessToken}",
         ])->get('https://www.zohoapis.eu/crm/v6/Accounts', [
                     'fields' => 'Account_Name,Phone,Website',
                     'converted' => 'true',
                 ]);
 
+
         return inertia('Zoho/Account/Index', [
-            'accounts' => $response['data'],
+            'accounts' => $accounts['data'],
         ]);
     }
 
@@ -63,7 +66,7 @@ class ZohoCrmAccountController extends Controller
 
         $validatedData = $request->validated();
         $accessToken = $this->service->getAccessToken();
-        $response = Http::withHeaders([
+        Http::withHeaders([
             'Authorization' => "Zoho-oauthtoken {$accessToken}",
         ])->put("https://www.zohoapis.eu/crm/v6/Accounts", [
                     'data' => [
